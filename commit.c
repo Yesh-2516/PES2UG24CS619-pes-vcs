@@ -230,4 +230,12 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
     }
     free(data);
 
+    if(head_update(commit_id_out)!=0) {
+	fprintf(stderr,"error: failed to update HEAD\n");
+	return -1;
+    }
+    char hex[HASH_HEX_SIZE+1];
+    hash_to_hex(commit_id_out,hex)l
+    printf("[main %.7s] %s\n",hex,message);
+    return 0;
 }
