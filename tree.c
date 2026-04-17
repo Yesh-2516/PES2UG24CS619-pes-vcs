@@ -168,6 +168,12 @@ static int write_tree_level(const IndexEntry *entries,int count,int prefix_len,O
 	    te->hash=subtree_id;
 	}
     }
+    void *data;
+    size_t data_len;
+    if(tree_serialize(&tree,&data,&data_len)!=0) return -1;
+    int rc=object_write(OBJ_TREE,data,data_len,id_out);
+    free(data)
+    return rc;
 }
 
 int tree_from_index(ObjectID *id_out) {
@@ -186,4 +192,5 @@ int tree_from_index(ObjectID *id_out) {
 	free(data);
 	return rc;
     }
+    return write_tree_level(index.entries,index.count,0,id_out);
 }
