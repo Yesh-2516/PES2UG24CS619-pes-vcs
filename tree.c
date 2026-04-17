@@ -129,6 +129,27 @@ int tree_serialize(const Tree *tree, void **data_out, size_t *len_out) {
 //   - object_write    : save that binary buffer to the store as OBJ_TREE
 //
 // Returns 0 on success, -1 on error.
+int object_write(ObjectType type,const void *data,size_t len,ObjectID *id_out);
+int index_load(Index *index);
+
+static int write_tree_level(const IndexEntry *entries,int count,int prefix_len,ObjectID *id_out) {
+    Tree tree;
+    tree.count=0;
+    int i=0;
+    while(i<count) {
+	const char *rel_path=entries[i].path+prefix_len;
+	const char *slash = strchr(rel_path,'/');
+        if (!slash) {
+	    TreeEntry *te=&tree.entries[tree.count++];
+	    te->mode=entries[i].mode;
+	    strncpy(te->name,rel_path,sizeof(te->name)-1);
+	    te->name[sizeof(te->name)-1]='\0';
+	    te->hash=entries[i].id;
+	    i++;
+	}
+    }
+}
+
 int tree_from_index(ObjectID *id_out) {
     // TODO: Implement recursive tree building
     // (See Lab Appendix for logical steps)
