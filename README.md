@@ -1,7 +1,7 @@
 # PES-VCS Lab Report
 
 **Student:** Yeshaswinie D | **SRN:** PES2UG24CS619  
-**Repository:** [Your GitHub Repo URL]  
+**Repository:** https://github.com/Yesh-2516/PES2UG24CS619-pes-vcs
 **Platform:** Ubuntu 22.04 | GCC | OpenSSL SHA-256
 
 ---
