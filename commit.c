@@ -203,4 +203,10 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
 	return -1;
     }
 
+    ObjectID parent_id;
+    if (head_read(&parent_id)==0) {
+	commit.has_parent=1;
+	commit.parent=parent_id;
+    } else { commit.has_parent=0; }
+
 }
