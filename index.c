@@ -220,4 +220,27 @@ int index_add(Index *index, const char *path) {
 
     if(fread(buf,1,(size_t)file_size,f)!=(size_t)file_size) { free(buf);fclose(f);return -1; }
     fclose(f);
+
+    ObjectID blob_id;
+    if(object_write(OBJ_BLOB,buf,(size_t)file_size,&blob_id)!=0) { free(buf); return -1; }
+    free(buf);
+    struct stat st;
+    if (lstat(path,&st)!=0) return -1;
+
+    IndexEntry *entry=index_find(index,path);
+    if(!entry) {
+	if(index->count>=MAX_INDEX_ENTRIES) {
+	   fprintf(stderr,"error: index is full\n");
+	   return -1;
+	}
+	entry=&index->entries[index->count++];
+    }
+
+    entry->id=blob_id;
+    entry->mode=get_file_mode(path);
+    entry->mtime_sec=(uint64_t)st.st_mtime;
+    entry->size=(uint64_t)st.st_size;
+    strncpy(entry->path,path,sizeof(entry->path)-1);
+    entry->path[sizeof(entry->path)-1]='\0';
+    return index_save(index);
 }
