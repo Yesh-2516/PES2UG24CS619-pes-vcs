@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <openssl/evp.h>
+#include <errno.h>
 
 // ─── PROVIDED ────────────────────────────────────────────────────────────────
 
@@ -134,7 +135,7 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
 
     char tmp_path[600];
     snprintf(tmp_path,sizeof(tmp_path),"%s.tmp",path);
-    int fd=open(tmp_path,O_CREAT | O_WRONLY | O_TRUNG, 0644);
+    int fd=open(tmp_path,O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd<0) { free(full_obj); return -1;}
 
     size_t written=0;
