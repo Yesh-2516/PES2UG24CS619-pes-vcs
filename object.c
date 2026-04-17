@@ -118,6 +118,43 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
 	free(full_obj);
 	return 0;
     }
+
+    char path[512];
+    object_path(id_out,path,sizeof(path));
+    char shard_dir[512];
+    snprintf(shard_dir,sizeof(shard_dir),"%s",path);
+    char *last_slash=strrchr(shard_dir,'/');
+    if (!last_slash) { free(full_obj); return -1;}
+    *last_slash='\0';
+
+    if (mkdir(shard_dir,0755)!=0 && errno!= EEXIST) {
+	free(full_obj);
+	return -1;
+    }
+
+    char tmp_path[600];
+    snprintf(tmp_path,sizeof(tmp_path),"%s.tmp",path);
+    int fd=open(tmp_path,O_CREAT | O_WRONLY | O_TRUNG, 0644);
+    if (fd<0) { free(full_obj); return -1;}
+
+    size_t written=0;
+    while (written<full_len) {
+	ssize_t n=write(fd,(uint8_t *)full_obj+written,full_len-written);
+	if (n<0) { close(fd); free(full_obj); return -1;}
+	written+=(size_t)n;
+    }
+
+    if (fsync(fd)!=0) { close(fd);free(full_obj);return -1; }
+    close(fd);
+    free(full_obj);
+    if (rename(tmp_path,path)!=0) return -1;
+
+    int dir_fd=open(shard_dir,O_RDONLY);
+    if (dir_fd>=0) {
+	fsync(dir_fd);
+	close(dir_fd);
+    }
+    return 0;
 }
 
 // Read an object from the store.
