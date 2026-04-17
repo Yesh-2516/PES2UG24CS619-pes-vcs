@@ -209,4 +209,8 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
 	commit.parent=parent_id;
     } else { commit.has_parent=0; }
 
+    strncpy(commit.author,pes_author(),sizeof(commit.author)-1);
+    commit.author[sizeof(commit.author)-1]='\0';
+    commit.timestamp=(uint64_t)time(NULL);
+
 }
