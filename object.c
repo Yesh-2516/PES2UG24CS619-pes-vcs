@@ -210,13 +210,23 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     uint8_t *null_byte=memchr(buf,'\0',(size_t)file_size);
     if (!null_byte) { free(buf); return -1;}
 
-    if (strncmp((char *)buf,"blob",5)==0)  *type_out=OBJ_BLOB;
-    else if (strncmp((char *)buf,"tree",5)==0) *type_out=OBJ_TREE;
-    else if (strncmp((char *)buf,"commit",7)==0) *type_out=OBJ_COMMIT;
+    size_t header_len=(size_t)(null_byte-buf);
+    char header[128];
+    if (header_len>=sizeof(header)) { free(buf); return -1; }
+    memcpy(header,buf,header_len);
+    header[header_len]='\0';
+    char type_str[16];
+    size_t declared_len=0;
+    if(sscanf(header,"%15s %zu",type_str,&declared_len)!=2) { free(buf); return -1;}
+
+    if (strcmp(type_str,"blob")==0)  *type_out=OBJ_BLOB;
+    else if (strcmp(type_str,"tree")==0) *type_out=OBJ_TREE;
+    else if (strcmp(type_str,"commit")==0) *type_out=OBJ_COMMIT;
     else { free(buf); return -1; }
 
     uint8_t *data_start=null_byte+1;
     size_t data_len=(size_t)file_size-(size_t)(data_start-buf);
+    if (declared_len != data_len) { free(buf); return -1; }
     uint8_t *out=malloc(data_len+1);
     if (!out) { free(buf); return -1; }
     memcpy(out,data_start,data_len);
