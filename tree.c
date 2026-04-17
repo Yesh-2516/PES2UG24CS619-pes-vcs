@@ -146,6 +146,26 @@ static int write_tree_level(const IndexEntry *entries,int count,int prefix_len,O
 	    te->name[sizeof(te->name)-1]='\0';
 	    te->hash=entries[i].id;
 	    i++;
+	} else {
+	    size_t dir_name_len=(size_t)(slash-rel_path);
+	    char dir_name[MAX_PATH_LEN];
+	    if (dir_name_len >= sizeof(dir_name)) return -1;
+	    memcpy(dir_name,rel_path,dir_name_len);
+	    dir_name[dir_name_len]='\0';
+	    int group_start=1;
+	    while(i<count) {
+		const char *p=entries[i].path+prefix_len;
+		if (strncmp(p,dir_name,dir_name_len) !=0 || p[dir_name_len]!='/') break;
+		i++;
+	    }
+	    int new_prefix_len=prefix_len+(int)dir_name_len+1;
+	    ObjectID subtree_id;
+	    if (write_tree_level(entries+group_start,i-group_start,new_prefix_len,&subtree_id)!=0) { return -1; }
+	    TreeEntry *te=&tree.entries[tree.count++];
+	    te->mode=MODE_DIR;
+	    strncpy(te->name,dir_name,sizeof(te->name)-1);
+	    te->name[sizeof(te->name)-1]='\0';
+	    te->hash=subtree_id;
 	}
     }
 }
