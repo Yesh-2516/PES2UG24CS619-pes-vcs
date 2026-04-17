@@ -134,4 +134,15 @@ int tree_from_index(ObjectID *id_out) {
     // (See Lab Appendix for logical steps)
     Index index;
     if (index_load(&index)!=0) return -1;
+
+    if(index.count==0) {
+	Tree empty_tree;
+	empty_tree.count=0;
+	void *data;
+	size_t data_len;
+	if (tree_serialize(&empty_tree,&data,&data_len)!=0) return -1;
+	int rc=object_write(OBJ_TREE,data,data_len,id_out);
+	free(data);
+	return rc;
+    }
 }
